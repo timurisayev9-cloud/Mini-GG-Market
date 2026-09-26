@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Mini GG Market"
+description = "An OLX-style marketplace for browsing, selling, purchasing, and rating products, with a dedicated admin control panel for the owner."
+version = "1.0.0"
+id = "artifacts/mini-gg-market"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25042
+
+[services.development]
+run = "pnpm --filter @workspace/mini-gg-market run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/mini-gg-market", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/mini-gg-market/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25042"
+BASE_PATH = "/"

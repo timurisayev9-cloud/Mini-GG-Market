@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: products
+    description: Marketplace products
+  - name: dashboard
+    description: Marketplace dashboard summaries
 paths:
   /healthz:
     get:
@@ -24,6 +28,121 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List marketplace products
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+  /products/{id}:
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete a product listing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+  /products/{id}/reviews:
+    post:
+      operationId: createReview
+      tags: [products]
+      summary: Rate a product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewInput"
+      responses:
+        "201":
+          description: Created review
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get admin dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +152,67 @@ components:
           type: string
       required:
         - status
+    Product:
+      type: object
+      required: [id, title, price, category, condition, location, imageUrl, sellerName, rating, reviewCount, status, createdAt]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        price: { type: number }
+        category: { type: string }
+        condition: { type: string }
+        location: { type: string }
+        imageUrl: { type: string }
+        sellerName: { type: string }
+        rating: { type: number }
+        reviewCount: { type: integer }
+        status: { type: string }
+        createdAt: { type: string }
+    ProductInput:
+      type: object
+      required: [title, price, category, condition, location, imageUrl, sellerName]
+      properties:
+        title: { type: string, minLength: 1 }
+        price: { type: number, minimum: 0 }
+        category: { type: string, minLength: 1 }
+        condition: { type: string, minLength: 1 }
+        location: { type: string, minLength: 1 }
+        imageUrl: { type: string }
+        sellerName: { type: string, minLength: 1 }
+    ProductUpdate:
+      type: object
+      properties:
+        title: { type: string }
+        price: { type: number, minimum: 0 }
+        category: { type: string }
+        condition: { type: string }
+        location: { type: string }
+        imageUrl: { type: string }
+        status: { type: string }
+    Review:
+      type: object
+      required: [id, productId, rating, comment, authorName, createdAt]
+      properties:
+        id: { type: integer }
+        productId: { type: integer }
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }
+        authorName: { type: string }
+        createdAt: { type: string }
+    ReviewInput:
+      type: object
+      required: [rating, comment, authorName]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }
+        authorName: { type: string }
+    DashboardSummary:
+      type: object
+      required: [totalProducts, activeListings, totalUsers, totalOrders, averageRating]
+      properties:
+        totalProducts: { type: integer }
+        activeListings: { type: integer }
+        totalUsers: { type: integer }
+        totalOrders: { type: integer }
+        averageRating: { type: number }
 
